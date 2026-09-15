@@ -2,10 +2,10 @@ import { html } from './html.js';
 import { useState } from '../vendor/hooks.js';
 import { calcCamp, countedResult, priceForTarget, withStudentCount } from '../core/calc.js';
 import { blankFacts, copyPlanToFact, factsOf, setField, withFacts } from '../core/edit.js';
-import { STATUSES, dayRate } from '../core/model.js';
+import { STATUSES, dateOfDay, dayRate } from '../core/model.js';
 import { Anatomy } from './Anatomy.js';
 import { Contract } from './Contract.js';
-import { NumberField } from './fields.js';
+import { DateField, NumberField } from './fields.js';
 import { Roster } from './Roster.js';
 import { WhatIf } from './WhatIf.js';
 import { dateRange, money, plural } from './format.js';
@@ -58,6 +58,7 @@ export function CampPage({ id }) {
     if (!edit(copyPlanToFact)) return;
     showToast(`Filled ${plural(blanks.length, 'amount')} from the plan`, { label: 'Undo', run: () => edit((c) => withFacts(c, before)) });
   };
+  const end = camp.startDate ? dateOfDay(camp.startDate, camp.days) : '';
   const facts = [dateRange(camp.startDate, real.days) || 'No date', plural(real.days, 'day'), plural(camp.nights, 'night'), plural(actual, 'student')];
 
   return html`
@@ -84,11 +85,8 @@ export function CampPage({ id }) {
 
       <div class="pane" data-pane="numbers">
         <section class="setup" aria-label="Camp setup">
-          <label class="fld fld-date">
-            <span class="fld-l">Start</span>
-            <span class="fld-box"><input type="date" value=${camp.startDate}
-              onChange=${(e) => { const startDate = e.currentTarget.value; edit((c) => ({ ...c, startDate })); }} /></span>
-          </label>
+          <${DateField} label="Start" value=${camp.startDate} max=${end || undefined} onCommit=${set('startDate')} />
+          <${DateField} label="End" value=${end} min=${camp.startDate || undefined} disabled=${!camp.startDate} onCommit=${set('endDate')} />
           <${NumberField} label="Days" value=${camp.days} onCommit=${set('days')} />
           <${NumberField} label="Nights" value=${camp.nights} onCommit=${set('nights')} />
           <${NumberField} label="Sessions" value=${camp.sessions} onCommit=${set('sessions')} />
@@ -96,8 +94,9 @@ export function CampPage({ id }) {
           ${sc === 'fact'
             ? html`<${NumberField} label="Actual price" value=${camp.price.fact} live prefix=${cur}
                 hint=${`Plan ${money(camp.price.plan, cur)}`} onCommit=${set('priceFact')} />`
-            : html`<${NumberField} label="Seat price" value=${camp.price.plan} live prefix=${cur}
-                hint=${`${money(dayRate(camp), cur)} / day`} onCommit=${set('price')} />`}
+            : html`<${NumberField} label="Day rate" value=${dayRate(camp)} live prefix=${cur}
+                hint=${`× ${plural(camp.days, 'day')}`} onCommit=${set('dayRate')} />
+              <${NumberField} label="Seat price" value=${camp.price.plan} live prefix=${cur} onCommit=${set('price')} />`}
           <${NumberField} label="Reserve" value=${camp.reservePct} live suffix="%" onCommit=${set('reservePct')} />
           <${NumberField} label="Target take" value=${camp.target > 0 ? camp.target : null} live clearable prefix=${cur}
             hint=${targetHint(real, camp.target, cur)} onCommit=${set('target')} />

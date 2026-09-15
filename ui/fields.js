@@ -39,3 +39,19 @@ export function NumberField({ label, value, onCommit, live = false, clearable = 
       ${hint && html`<span class="fld-hint">${hint}</span>`}
     </label>`;
 }
+
+/* Дата уходит в кемп только по Enter или уходу из поля: Chrome шлёт change на каждую набранную цифру,
+   а промежуточная дата сдвинула бы длину кемпа и безвозвратно обрезала даты людей.
+   onCommit вернул false — правку не приняли, и поле возвращается к прежней дате. */
+export function DateField({ label, value, onCommit, min, max, disabled = false }) {
+  return html`
+    <label class="fld fld-date">
+      <span class="fld-l">${label}</span>
+      <span class="fld-box"><input type="date" value=${value} min=${min} max=${max} disabled=${disabled}
+        onKeyDown=${(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+        onBlur=${(e) => {
+          const input = e.currentTarget;
+          if (input.value !== value && !onCommit(input.value)) input.value = value;
+        }} /></span>
+    </label>`;
+}

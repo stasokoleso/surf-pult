@@ -2,7 +2,7 @@
 // Данные кемпов сюда не попадают — они в IndexedDB. Здесь только файлы приложения.
 // Блок ниже пишет `npm run offline`.
 // <offline-files>
-const VERSION = 'e9b78ae700ef';
+const VERSION = '5b011123d0b6';
 const FILES = [
   "./app.js",
   "./core/anatomy.js",

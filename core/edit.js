@@ -1,20 +1,52 @@
 // Правка параметров кемпа: экран передаёт поле и число, связи между полями живут здесь.
 import { withStudentCount } from './calc.js';
-import { daysForNights, makePerson, newId, nightsForDays, num, setLength, staysLike } from './model.js';
+import { dayOfDate, daysForNights, makePerson, newId, nightsForDays, num, setLength, staysLike } from './model.js';
 
 // null — правку применить нельзя (например, столько учеников на весь кемп не убрать).
 export function setField(camp, field, value) {
   switch (field) {
     case 'days': return setLength(camp, Math.round(value), nightsForDays(value));
     case 'nights': return setLength(camp, daysForNights(value), Math.round(value));
+    // Длина кемпа — мои дни от старта до конца включительно. Конец раньше старта — опечатка:
+    // кемп на день обрезал бы даты людей.
+    case 'endDate': {
+      const days = dayOfDate(camp.startDate, value);
+      return days === null || days < 1 ? null : setLength(camp, days, nightsForDays(days));
+    }
+    case 'startDate': return setStart(camp, value);
     case 'sessions': return { ...camp, sessions: Math.max(0, Math.round(value)) };
     case 'students': return withStudentCount(camp, Math.max(0, Math.round(value)));
     case 'price': return { ...camp, price: { ...camp.price, plan: Math.max(0, value) } };
+    case 'dayRate': return { ...camp, price: { ...camp.price, plan: Math.round(Math.max(0, value) * camp.days * 100) / 100 } };
     case 'priceFact': return { ...camp, price: { ...camp.price, fact: Math.max(0, value) } };
     case 'reservePct': return { ...camp, reservePct: Math.max(0, value) };
     case 'target': return { ...camp, target: Math.max(0, value ?? 0) };
     default: throw new Error(`Unknown field: ${field}`);
   }
+}
+
+/* Старт двигается, конец стоит: длина кемпа — мои дни до отъезда.
+   У кого свои даты, те остаются на своих числах календаря; «на весь кемп» — это на все мои дни.
+   null — старт после конца: опечатка, а кемп на день обрезал бы даты людей. */
+function setStart(camp, startDate) {
+  // Без старта нет и конца — держать нечего, длина остаётся как была.
+  if (!camp.startDate || !startDate) return { ...camp, startDate };
+  const shift = dayOfDate(startDate, camp.startDate) - 1;
+  const days = camp.days + shift;
+  if (days < 1) return null;
+  // Кто приехал раньше меня, считается с моего старта.
+  const move = (d) => (d === null ? null : Math.min(Math.max(d + shift, 1), days));
+  const people = camp.people.map((p) => {
+    const from = move(p.from);
+    const to = move(p.to);
+    const whole = (from ?? 1) === 1 && (to ?? days) === days;
+    return {
+      ...p,
+      ...(whole ? { from: null, to: null } : { from, to }),
+      stays: p.stays.map((st) => ({ ...st, from: move(st.from), to: move(st.to) })),
+    };
+  });
+  return setLength({ ...camp, startDate, people }, days, nightsForDays(days));
 }
 
 /* ---------- факт ----------

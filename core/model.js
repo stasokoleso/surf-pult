@@ -75,7 +75,8 @@ export function blankCamp({ now = new Date() } = {}) {
     days: DEFAULTS.days,
     nights: nightsForDays(DEFAULTS.days),
     sessions: DEFAULTS.sessions,
-    price: { plan: DEFAULTS.pricePlan, fact: 0, hold: 'total' },
+    // Цену Стас обычно задаёт ставкой в день, поэтому новый кемп при смене длины держит её.
+    price: { plan: DEFAULTS.pricePlan, fact: 0, hold: 'rate' },
     reservePct: DEFAULTS.reservePct,
     people: placeholderStudents(6),
     items: [

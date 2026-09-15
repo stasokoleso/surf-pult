@@ -490,7 +490,9 @@ button.r-name { padding: 6px 0; border: 0; background: none; font-size: 13px; te
   .imp-row input { width: 22px; height: 22px; }
 
   /* Зона касания крайней ручки состава шире отступа страницы — clip срезает её край, не делая блок прокручиваемым. */
-  .camp { gap: 26px; padding: max(8px, env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom)); overflow-x: clip; }
+  /* Колонка во всю ширину экрана, а не по содержимому: два поля даты в ряд просят по ~300px
+     каждое, и колонка без этого раздувалась вдвое шире телефона. */
+  .camp { grid-template-columns: minmax(0, 1fr); gap: 26px; padding: max(8px, env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom)); overflow-x: clip; }
   .camp[data-tab="numbers"] > .pane:not([data-pane="numbers"]),
   .camp[data-tab="people"] > .pane:not([data-pane="people"]),
   .camp[data-tab="notes"] > .pane:not([data-pane="notes"]) { display: none; }
@@ -510,8 +512,11 @@ button.r-name { padding: 6px 0; border: 0; background: none; font-size: 13px; te
   .camp-name { font-size: 40px; }
   .seg button { min-height: 36px; font-size: 15px; }
   .setup { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  /* Цель — одна в последнем ряду: во всю ширину, как Start, а не половинка с пустотой рядом. */
-  .setup > .fld:last-child { grid-column: span 2; }
+  /* Start и End — парой в одном ряду: так читается «с — по», и половины ширины телефона календарю хватает. */
+  .fld-date { grid-column: auto; }
+  /* Цель одна в последнем ряду — во всю ширину, а не половинка с пустотой рядом.
+     Одна она только при нечётном номере: в плане полей на одно больше (Day rate), и цель встаёт в пару. */
+  .setup > .fld:last-child:nth-child(odd) { grid-column: span 2; }
   .fld-box { height: 44px; border-radius: 10px; }
   .fld-box input, .fld-box select { font-size: 16px; }
   .wi-range input { height: 36px; }
