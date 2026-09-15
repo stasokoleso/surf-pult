@@ -2,7 +2,7 @@
 // Данные кемпов сюда не попадают — они в IndexedDB. Здесь только файлы приложения.
 // Блок ниже пишет `npm run offline`.
 // <offline-files>
-const VERSION = 'bdb2c67375c3';
+const VERSION = 'e9b78ae700ef';
 const FILES = [
   "./app.js",
   "./core/anatomy.js",
@@ -13,6 +13,7 @@ const FILES = [
   "./icons/apple-touch-icon.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
+  "./icons/og-image.png",
   "./index.html",
   "./manifest.webmanifest",
   "./store/index.js",
