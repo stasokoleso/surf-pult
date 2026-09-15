@@ -1,0 +1,525 @@
+/* Шрифты лежат рядом с приложением: CSP не пускает Google Fonts, а без интернета их не было бы вовсе.
+   В файлах только латиница — кириллицу рисуют запасные шрифты из стека. */
+@font-face {
+  font-family: "Newsreader";
+  src: url("../vendor/fonts/newsreader.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Schibsted Grotesk";
+  src: url("../vendor/fonts/schibsted-grotesk.woff2") format("woff2");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Токены из принятого макета (шаг 6). Синий всегда значит «твоё»: заработок и прибыль. */
+:root {
+  --paper: #F6F7F5; --sheet: #FFFFFF; --shell: #E8ECEA;
+  --ink: #141C1B; --ink-2: #4E5956; --ink-3: #7F8986; --rule: #E1E5E3; --rule-2: #C6CDCA;
+  --accent: #1F4FB0; --accent-soft: #DFE7F7;
+  --k-student: #6E8F84; --k-housing: #9AAAB4; --k-shared: #C2B08A; --k-reserve: #CDD3D0; --k-personal: #AE9FAB;
+  --serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --sans: "Schibsted Grotesk", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0F1413; --sheet: #161C1B; --shell: #222A28;
+    --ink: #E6ECE9; --ink-2: #A8B2AF; --ink-3: #78827F; --rule: #262F2D; --rule-2: #36403D;
+    --accent: #8CA9FF; --accent-soft: #1D2944;
+    --k-student: #79A596; --k-housing: #8C9FAB; --k-shared: #BBA97F; --k-reserve: #3B4543; --k-personal: #A594A2;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 15px/1.5 var(--sans); font-variant-numeric: lining-nums; -webkit-font-smoothing: antialiased;
+}
+h1, h2, p { margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Моноширинные цифры — только там, где числа стоят столбиком: в тексте они разрежают точки и имена. */
+.num, .yr b, .lrow .p, .m .v, .fld-box input { font-variant-numeric: tabular-nums lining-nums; }
+
+.boot { min-height: 100dvh; }
+
+/* Широкое окно: список слева, кемп справа, каждая колонка прокручивается сама. */
+.shell { display: grid; grid-template-columns: 320px minmax(0, 1fr); height: 100dvh; }
+.side { background: var(--paper); border-right: 1px solid var(--rule); overflow-y: auto; }
+.main { background: var(--sheet); overflow-y: auto; }
+.welcome { padding: 40px 36px; color: var(--ink-3); font-size: 14px; }
+
+/* Список */
+.list { min-height: 100%; display: flex; flex-direction: column; gap: 14px; padding: 20px 14px 0; }
+.list-title { font: 500 28px/1.1 var(--serif); letter-spacing: -.015em; padding: 0 2px; }
+.list-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.link { padding: 6px 2px; border: 0; background: none; color: var(--accent); font-size: 14px; cursor: pointer; }
+/* Плашка копии. Рамка темнеет, когда несохранённые правки копятся: форма, а не красный цвет. */
+.backup {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center;
+  padding: 12px 14px; border: 1px solid var(--rule-2); border-radius: 12px;
+}
+.backup[data-stale] { border-color: var(--ink); }
+.backup-t { display: grid; gap: 2px; font-size: 12px; line-height: 1.4; color: var(--ink-2); }
+.backup-t b { font-size: 14px; font-weight: 500; color: var(--ink); }
+.backup-t small { font-size: 11px; color: var(--ink-3); }
+.backup button {
+  min-height: 36px; padding: 0 12px; border: 1px solid var(--ink); border-radius: 8px;
+  background: none; font-size: 13px; white-space: nowrap; cursor: pointer;
+}
+.list-tools { display: grid; gap: 10px; }
+.search {
+  width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--rule-2); border-radius: 8px;
+  background: var(--sheet); font-size: 14px; -webkit-appearance: none; appearance: none;
+}
+.search::placeholder { color: var(--ink-3); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  border: 1px solid var(--rule-2); background: none; border-radius: 99px;
+  padding: 3px 11px; font-size: 12px; color: var(--ink-2); cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--sheet); }
+.yr { display: grid; gap: 2px; padding: 4px 2px 2px; }
+.yr small { font-size: 12px; color: var(--ink-3); }
+.yr b { font: 500 30px/1.1 var(--serif); color: var(--accent); overflow-wrap: anywhere; }
+.month { display: grid; }
+.mh {
+  display: flex; justify-content: space-between; gap: 10px; margin-bottom: 4px; padding: 14px 4px 6px;
+  border-bottom: 1px solid var(--rule); font: 500 11px/1.4 var(--sans);
+  letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3);
+}
+.mh .num { letter-spacing: 0; }
+.lrow {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 10px; align-items: baseline;
+  padding: 10px 8px; border: 1px solid transparent; border-radius: 8px; text-decoration: none;
+}
+@media (hover: hover) { .lrow:hover { background: var(--sheet); } }
+.lrow[aria-current="page"] { background: var(--sheet); border-color: var(--rule-2); }
+.lrow .n { font-weight: 500; font-size: 15px; overflow-wrap: anywhere; }
+.lrow .p { font: 500 16px/1.2 var(--serif); text-align: right; }
+.lrow .s { font-size: 12px; color: var(--ink-3); }
+/* Статус читается формой, а не цветом: пунктир — черновик, рамка — в плане, заливка — проведён. */
+.pill {
+  justify-self: end; align-self: center; padding: 4px 8px; border: 1px solid var(--ink-2); border-radius: 99px;
+  font-size: 11px; font-weight: 500; line-height: 1; color: var(--ink-2); white-space: nowrap;
+}
+.pill.draft { border-style: dashed; border-color: var(--ink-3); color: var(--ink-3); }
+.pill.done { background: var(--ink); border-color: var(--ink); color: var(--sheet); }
+.empty { display: grid; gap: 6px; padding: 28px 4px; }
+.empty h2 { font: 500 22px/1.2 var(--serif); }
+.empty p { color: var(--ink-2); font-size: 14px; }
+/* Кнопка прилипает к низу: длинный список не уносит её за край экрана. */
+.new-bar {
+  position: sticky; bottom: 0; margin-top: auto; padding: 12px 0 16px;
+  background: linear-gradient(to bottom, transparent, var(--paper) 30%);
+}
+.primary {
+  width: 100%; min-height: 40px; border: 0; border-radius: 10px;
+  background: var(--ink); color: var(--sheet); font-size: 14px; font-weight: 500; cursor: pointer;
+}
+
+/* Кемп */
+.camp { display: grid; gap: 36px; align-content: start; max-width: 1040px; padding: 28px 36px 48px; }
+.back { display: none; align-items: center; min-height: 44px; color: var(--accent); font-size: 17px; text-decoration: none; }
+.camp-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px 24px; }
+.camp-head { display: grid; gap: 8px; flex: 1 1 320px; min-width: 0; }
+.eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 13px; color: var(--ink-2); }
+/* Название правится на месте: поле выглядит заголовком, рамка появляется только при наведении и вводе. */
+.camp-name {
+  width: 100%; padding: 0 0 2px; border: 0; border-bottom: 1px dashed transparent; background: none;
+  font: 500 52px/1.05 var(--serif); letter-spacing: -.02em; color: var(--ink);
+}
+.camp-name::placeholder { color: var(--ink-3); }
+@media (hover: hover) { .camp-name:hover { border-bottom-color: var(--rule-2); } }
+.camp-name:focus { outline: none; border-bottom-color: var(--accent); }
+.seg { display: inline-flex; padding: 2px; border: 1px solid var(--rule-2); border-radius: 9px; background: var(--sheet); }
+.seg button { padding: 6px 14px; border: 0; border-radius: 7px; background: none; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); }
+.camp-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.tog {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
+  border: 1px solid var(--rule-2); border-radius: 9px; background: var(--sheet); font-size: 13px; color: var(--ink-2); cursor: pointer;
+}
+.tog i { position: relative; flex: none; width: 26px; height: 14px; border-radius: 99px; background: var(--rule-2); }
+.tog i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--sheet); transition: left .15s; }
+.tog[aria-pressed="true"] { color: var(--ink); }
+.tog[aria-pressed="true"] i { background: var(--accent); }
+.tog[aria-pressed="true"] i::after { left: 14px; }
+@media (prefers-reduced-motion: reduce) { .tog i::after { transition: none; } }
+
+.setup { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 14px 12px; margin-bottom: -18px; }
+.fld { display: grid; gap: 5px; align-content: start; min-width: 0; }
+/* Поле даты со встроенным календарём шире числа — иначе значок уезжает под соседнее поле. */
+.fld-date { grid-column: span 2; }
+.fld-l { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.fld-box {
+  display: flex; align-items: center; gap: 4px; height: 36px; padding: 0 10px;
+  border: 1px solid var(--rule-2); border-radius: 8px; background: var(--sheet);
+}
+.fld-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.fld-box input { flex: 1; width: 100%; min-width: 0; padding: 0; border: 0; background: none; font-size: 14px; outline: none; }
+.fld-aff { font-size: 13px; color: var(--ink-3); }
+.fld-hint { font-size: 11px; color: var(--ink-3); }
+.hold { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 13px; color: var(--ink-2); }
+.fld-inline { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+.fld-inline .fld-box { width: 64px; }
+
+/* Полоса метрик: главная цифра — «Your take», синим; остальное — чем она объясняется. */
+.metrics { display: grid; grid-template-columns: 1.35fr repeat(4, minmax(0, 1fr)); border-top: 1.5px solid var(--ink); border-bottom: 1px solid var(--rule); }
+.m { display: grid; gap: 4px; align-content: start; min-width: 0; padding: 14px 18px 16px; border-left: 1px solid var(--rule); }
+.m:first-child { padding-left: 0; border-left: 0; }
+.m .l { font-size: 12px; color: var(--ink-3); }
+.m .v { font: 500 28px/1.05 var(--serif); letter-spacing: -.01em; }
+.m.hero .v { font-size: 44px; color: var(--accent); }
+.m .d { font-size: 12px; color: var(--ink-2); }
+@media (max-width: 1100px) {
+  .metrics { grid-template-columns: 1fr 1fr; border-bottom: 0; }
+  .m { padding: 12px 0 12px 14px; border-bottom: 1px solid var(--rule); }
+  .m.hero { grid-column: 1 / -1; }
+  .m:nth-child(even) { padding-left: 0; border-left: 0; }
+  .m.hero .v { font-size: 54px; }
+}
+/* Анатомия цены. Цвет = вид статьи: одинаковый в полосе, в таблице и в будущих картинках. */
+.k-student { background-color: var(--k-student); }
+.k-housing { background-color: var(--k-housing); }
+.k-shared { background-color: var(--k-shared); }
+.k-reserve { background-color: var(--k-reserve); }
+.k-personal { background-color: var(--k-personal); }
+.k-profit { background-color: var(--accent); }
+/* Штриховка — «мой подряд»: деньги статьи уходят в расходы, но достаются мне. */
+.hatch { background-image: repeating-linear-gradient(135deg, transparent 0 3px, var(--sheet) 3px 4.6px); }
+.sw { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 2px; }
+
+/* Таблица перестраивается по ширине самого блока, а не окна: на Mac с узким окном колонок тоже не хватает. */
+.anatomy { container-type: inline-size; }
+.kicker { margin-bottom: 10px; font: 600 11px/1 var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3); }
+.bt { font: 500 25px/1.15 var(--serif); letter-spacing: -.01em; text-wrap: balance; }
+.bs { max-width: 70ch; margin-top: 6px; font-size: 13px; color: var(--ink-2); }
+
+.strip { margin: 0; }
+.strip-bar { position: relative; display: flex; height: 26px; margin-top: 34px; }
+.strip-bar > span { flex: none; border-right: 2px solid var(--sheet); }
+.strip-price { position: absolute; top: -8px; bottom: -4px; border-left: 1.5px solid var(--ink); }
+.strip-price-l {
+  position: absolute; top: -27px; padding-right: 6px; transform: translateX(-100%);
+  font-size: 12px; color: var(--ink-2); white-space: nowrap;
+}
+.strip-price-l.start { padding: 0 0 0 6px; transform: none; }
+.strip-key { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 12px; font-size: 12px; color: var(--ink-3); }
+.strip-key span { display: inline-flex; align-items: center; gap: 6px; }
+.strip-key b { font-weight: 500; color: var(--ink); }
+.strip-end { margin-left: auto; }
+.strip-key .gain, .strip-key .gain b { font-weight: 600; color: var(--accent); }
+.strip-key .loss b { font-weight: 600; }
+
+.tbl { display: grid; margin-top: 24px; font-size: 13px; }
+.tr {
+  display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1.3fr) 84px 84px 64px minmax(0, 1.2fr);
+  gap: 14px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--rule);
+}
+.tr.th { padding-bottom: 8px; border-bottom: 1.5px solid var(--ink); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
+.tr.tg { padding-top: 18px; border-bottom-color: var(--rule-2); font-weight: 600; }
+.tr.tt { border-bottom-color: var(--rule-2); font-weight: 600; }
+.tr.strong { margin-top: -1px; border-top: 1.5px solid var(--ink); }
+.tr.tp { border-bottom: 0; font-weight: 600; color: var(--accent); }
+.t-name { display: flex; align-items: center; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.t-qty { font-weight: 400; color: var(--ink-2); }
+.t-day { color: var(--ink-2); }
+.tt .t-day, .tp .t-day { color: inherit; }
+.mine { flex: none; padding: 1px 6px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 500; line-height: 1.4; }
+.t-bar { display: flex; height: 10px; }
+.t-bar > span { border-radius: 0 2px 2px 0; }
+/* Строка статьи — кнопка: нажатие раскрывает правку прямо под ней. */
+button.tr { width: 100%; margin: 0; border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; background: none; font-size: 13px; text-align: left; cursor: pointer; }
+@media (hover: hover) { button.tr:hover { background: var(--paper); box-shadow: -8px 0 var(--paper), 8px 0 var(--paper); } }
+button.tr[aria-expanded="true"] { border-bottom-color: transparent; background: var(--paper); box-shadow: -8px 0 var(--paper), 8px 0 var(--paper); }
+.t-add { justify-self: start; padding: 8px 0 4px; border: 0; background: none; font-size: 13px; color: var(--accent); cursor: pointer; }
+@media (hover: hover) { .t-add:hover { text-decoration: underline; } }
+/* Факт поверх плана: бледная полоса — план, узкая плотная поверх — факт, справа разница на место. */
+.t-bar.ov { align-items: center; gap: 8px; height: auto; }
+.ov-track { position: relative; flex: 1; height: 10px; }
+.ov-track > span { position: absolute; left: 0; border-radius: 0 2px 2px 0; }
+.ov-plan { top: 0; bottom: 0; opacity: .3; }
+.ov-fact { top: 3px; bottom: 3px; }
+.ov-d { flex: none; min-width: 46px; font-size: 11px; color: var(--ink-2); text-align: right; font-variant-numeric: tabular-nums; }
+
+.ied {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px 12px; align-items: end;
+  margin: 0 -8px; padding: 6px 8px 14px; border-bottom: 1px solid var(--rule-2); background: var(--paper);
+}
+.ied-name, .ied-split { grid-column: span 2; }
+.ied .seg { justify-self: start; }
+.ied-note, .ied-check, .ied-foot { grid-column: 1 / -1; }
+.ied-note { font-size: 13px; color: var(--ink-2); }
+.ied-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+.ied-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+.ied-foot { display: flex; justify-content: space-between; gap: 12px; }
+.fld-box select { flex: 1; width: 100%; min-width: 0; padding: 0; border: 0; background: none; font-size: 14px; outline: none; }
+
+@container (max-width: 640px) {
+  .tr { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name seat" "qty camp" "bar bar"; gap: 2px 12px; padding: 10px 0; }
+  .tr.th, .t-day { display: none; }
+  .t-name { grid-area: name; font-size: 15px; }
+  .t-seat { grid-area: seat; font-size: 15px; }
+  .t-qty, .t-camp { font-size: 12px; color: var(--ink-3); }
+  .t-qty { grid-area: qty; }
+  .t-camp { grid-area: camp; }
+  .t-camp::after { content: " camp"; }
+  .t-bar { grid-area: bar; height: 8px; margin-top: 6px; }
+  .t-qty:empty, .t-bar:empty { display: none; }
+  /* В карточке столбца нет, а табличная запятая в этом шрифте шириной с цифру и разрывает сумму. */
+  .num { font-variant-numeric: lining-nums; }
+}
+
+/* Водопад «куда уходят деньги»: синее — то, что остаётся тебе. */
+.k-ink { background-color: var(--ink); }
+.contract { container-type: inline-size; }
+.wf { display: grid; margin-top: 16px; }
+.wrow { display: grid; grid-template-columns: 150px minmax(0, 1fr) 84px; gap: 12px; align-items: center; padding: 6px 0; font-size: 13px; }
+.wl { color: var(--ink-2); }
+.wv { text-align: right; font-variant-numeric: tabular-nums lining-nums; }
+.wrow.key { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--rule-2); }
+.wrow.key .wl, .wrow.key .wv { font-weight: 600; color: var(--ink); }
+.wrow.acc .wl, .wrow.acc .wv { color: var(--accent); }
+.track { position: relative; height: 16px; }
+.track::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; border-top: 1px dotted var(--rule-2); }
+.track > span { position: absolute; top: 0; bottom: 0; border-radius: 2px; }
+.wf-zero { position: absolute; top: -4px; bottom: -4px; border-left: 1px solid var(--ink-3); }
+@container (max-width: 520px) {
+  .wrow { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "l v" "t t"; gap: 4px 10px; padding: 7px 0; font-size: 14px; }
+  .wl { grid-area: l; }
+  .wv { grid-area: v; font-variant-numeric: lining-nums; }
+  .track { grid-area: t; }
+}
+
+/* «Если группа другая» и водопад — рядом: оба отвечают на вопрос «что остаётся мне». */
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 36px 48px; align-items: start; }
+.whatif {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px;
+  margin-bottom: -18px; padding: 8px 8px 8px 14px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); font-size: 13px;
+}
+.whatif .quiet { border-color: currentColor; color: inherit; }
+.wi-box { margin-top: 14px; min-height: 240px; }
+.wi-svg { display: block; overflow: visible; touch-action: pan-y; cursor: ew-resize; user-select: none; -webkit-user-select: none; }
+.wi-svg text { font: 11px var(--sans); fill: var(--ink-3); }
+.wi-svg .acc { font-size: 12px; font-weight: 600; fill: var(--accent); }
+.wi-svg .now-n { font-weight: 600; fill: var(--ink); }
+.wi-svg .grid { stroke: var(--rule); }
+.wi-svg .zero { stroke: var(--ink-2); stroke-width: 1.2; }
+.wi-svg .tick { stroke: var(--ink); }
+.wi-svg .now { stroke: var(--accent); stroke-dasharray: 2 3; opacity: .6; }
+.wi-svg .l-take { fill: none; stroke: var(--ink-3); stroke-width: 1.5; stroke-linejoin: round; }
+.wi-svg .l-profit { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linejoin: round; }
+.wi-svg .be { fill: var(--sheet); stroke: var(--ink-2); stroke-width: 1.5; }
+.wi-svg .dot-take { fill: var(--ink-3); }
+.wi-svg .dot { fill: var(--accent); stroke: var(--sheet); stroke-width: 2.5; }
+.wi-range { display: flex; align-items: center; gap: 10px; margin-top: 4px; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.wi-range input { flex: 1; min-width: 0; accent-color: var(--accent); }
+
+/* Состав по дням. Колонка дня — доля ширины дорожки: полосы, ручки, даты и счётчики стоят по одной сетке. */
+.roster { container-type: inline-size; }
+.rtab { display: grid; margin-top: 20px; font-size: 13px; }
+.rr {
+  display: grid; grid-template-columns: 150px minmax(0, 1fr) 40px 76px 76px; gap: 12px; align-items: center;
+  min-height: 34px; border-bottom: 1px solid var(--rule);
+}
+.rr[aria-current="true"] { border-bottom-color: transparent; background: var(--paper); box-shadow: -8px 0 var(--paper), 8px 0 var(--paper); }
+.r-name { display: flex; align-items: baseline; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.r-name small { font-size: 11px; color: var(--ink-3); }
+button.r-name { padding: 6px 0; border: 0; background: none; font-size: 13px; text-align: left; cursor: pointer; }
+@media (hover: hover) { button.r-name:hover { color: var(--accent); } }
+.r-track {
+  position: relative; align-self: stretch;
+  background: linear-gradient(to right, var(--rule) 1px, transparent 1px) 0 0 / calc(100% / var(--days)) 100%;
+}
+.r-bar { position: absolute; top: 50%; height: 10px; margin-top: -5px; border-radius: 3px; }
+/* Ручка ловит палец шире, чем видна. touch-action — чтобы тянулась ручка, а не прокручивалась страница. */
+.r-h { position: absolute; top: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; touch-action: none; cursor: ew-resize; }
+.r-h::after { content: ""; position: absolute; inset: 8px; border: 1.5px solid var(--ink-2); border-radius: 50%; background: var(--sheet); }
+.r-h:focus-visible { outline: none; }
+.r-h:focus-visible::after { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.r-from { left: 0; }
+.r-to { left: 100%; }
+.r-days, .r-cost, .r-profit { text-align: right; font-variant-numeric: tabular-nums lining-nums; }
+.r-days { color: var(--ink-2); }
+.r-profit.loss { font-weight: 600; }
+.r-note { grid-column: span 3; text-align: right; font-size: 12px; color: var(--ink-3); }
+.r-head { padding: 4px 0 6px; border-bottom: 1.5px solid var(--ink); font-size: 11px; color: var(--ink-3); }
+.r-head .r-days, .r-head .r-cost, .r-head .r-profit { color: var(--ink-3); }
+/* Прибыль ученика — до моих личных расходов: иначе сумма колонки не сходится с прибылью кемпа, и это пугает. */
+.r-head .r-profit small { display: block; font-size: 10px; line-height: 1.2; }
+.r-dates, .r-counts { display: grid; grid-template-columns: repeat(var(--days), minmax(0, 1fr)); text-align: center; }
+.r-dates span { display: grid; line-height: 1.3; }
+.r-dates b { font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+.r-band { padding-bottom: 8px; border-bottom: 0; }
+.r-band .r-name { display: grid; gap: 2px; font-weight: 600; }
+.r-counts { height: 56px; }
+.r-counts span { position: relative; display: flex; align-items: center; justify-content: center; }
+.r-counts i { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); opacity: .34; }
+.r-counts b { position: relative; font-weight: 500; font-variant-numeric: tabular-nums; }
+.r-add { display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: 6px; }
+.ied-step { grid-column: span 2; }
+.step { display: flex; align-items: center; height: 36px; border: 1px solid var(--rule-2); border-radius: 8px; background: var(--sheet); }
+.step button { align-self: stretch; width: 38px; border: 0; background: none; font-size: 18px; color: var(--ink-2); cursor: pointer; }
+.step button:disabled { color: var(--rule-2); cursor: default; }
+.step output { flex: 1; min-width: 0; overflow: hidden; font-size: 14px; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
+.fld-box select:disabled { color: var(--ink-3); }
+@container (max-width: 560px) {
+  .rr { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name profit" "track track"; gap: 0 12px; padding: 4px 0 10px; }
+  button.r-name { grid-area: name; font-size: 15px; }
+  .r-profit, .r-note { grid-area: profit; }
+  .r-track, .r-dates, .r-counts { grid-area: track; }
+  .r-track { height: 30px; }
+  .r-days, .r-cost, .r-head .r-profit, .r-head .r-name, .r-band .r-name, .r-dates small { display: none; }
+  .r-head, .r-band { grid-template-areas: "track track"; }
+  .r-h { width: 40px; height: 40px; margin: -20px 0 0 -20px; }
+  .r-h::after { inset: 13px; }
+  .r-profit { font-variant-numeric: lining-nums; }
+}
+
+.camp-notes textarea {
+  display: block; width: 100%; min-height: 7lh; field-sizing: content; padding: 10px 12px;
+  border: 1px solid var(--rule-2); border-radius: 8px; background: var(--sheet); font: 14px/1.5 var(--sans); color: var(--ink); resize: vertical;
+}
+.camp-notes textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); outline: none; }
+.camp-foot { padding-top: 14px; border-top: 1px solid var(--rule); }
+/* Разделы кемпа: на широком окне обёртки не трогают сетку страницы, на телефоне виден один раздел. */
+.pane { display: contents; }
+.tabbar { display: none; }
+.quiet {
+  min-height: 36px; padding: 0 14px; border: 1px solid var(--rule-2); border-radius: 8px;
+  background: none; font-size: 14px; color: var(--ink-2); cursor: pointer;
+}
+@media (hover: hover) { .quiet:hover { border-color: var(--ink-2); color: var(--ink); } }
+
+/* Плашка внизу: удаление без вопроса «вы уверены?», но с отменой. */
+.toast-slot {
+  position: fixed; left: 0; right: 0; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 10;
+  display: flex; justify-content: center; padding: 0 16px; pointer-events: none;
+}
+.toast {
+  display: flex; align-items: center; gap: 14px; max-width: 440px; min-height: 48px; padding: 6px 16px;
+  border-radius: 12px; background: var(--ink); color: var(--sheet); font-size: 14px;
+  box-shadow: 0 6px 24px rgb(0 0 0 / .18); pointer-events: auto;
+}
+.toast button {
+  min-height: 36px; margin-right: -8px; padding: 0 14px; border: 1px solid currentColor; border-radius: 8px;
+  background: none; color: var(--accent-soft); font-weight: 500; cursor: pointer;
+}
+
+.primary:disabled { opacity: .45; cursor: default; }
+
+/* Предпросмотр импорта */
+.sheet {
+  width: min(560px, calc(100vw - 32px)); max-width: none; max-height: min(86dvh, 760px);
+  padding: 0; border: 0; border-radius: 14px; background: var(--sheet); color: var(--ink);
+  box-shadow: 0 20px 60px rgb(0 0 0 / .25);
+}
+.sheet[open] { display: flex; flex-direction: column; }
+.sheet::backdrop { background: rgb(8 12 11 / .45); }
+.sheet-h { display: grid; gap: 4px; padding: 20px 20px 14px; }
+.sheet-h h2 { font: 500 26px/1.1 var(--serif); letter-spacing: -.01em; }
+.sheet-h p { font-size: 13px; color: var(--ink-3); overflow-wrap: anywhere; }
+.imp-warn { margin: 0 20px 12px; padding: 10px 12px; border: 1px solid var(--rule-2); border-radius: 8px; font-size: 13px; color: var(--ink-2); }
+.imp-warn summary { cursor: pointer; }
+.imp-warn ul { display: grid; gap: 4px; margin: 8px 0 0; padding-left: 18px; }
+.imp-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin: 0; padding: 0 20px; list-style: none; border-top: 1px solid var(--rule); }
+.imp-row {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 2px 10px; align-items: baseline;
+  padding: 12px 0; border-bottom: 1px solid var(--rule); cursor: pointer;
+}
+.imp-row input { grid-row: span 2; align-self: center; width: 18px; height: 18px; margin: 0; accent-color: var(--ink); }
+.imp-row[data-state="same"] { color: var(--ink-3); cursor: default; }
+/* Выбирать нечего — пустая серая галочка читалась бы как выключенное действие. */
+.imp-row[data-state="same"] input { visibility: hidden; }
+.imp-n { font-weight: 500; overflow-wrap: anywhere; }
+.imp-p { font: 500 16px/1.2 var(--serif); font-variant-numeric: tabular-nums lining-nums; text-align: right; }
+.imp-s, .imp-y { font-size: 12px; color: var(--ink-3); }
+.imp-y { text-align: right; }
+.sheet-f { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px 18px; }
+.sheet-f .primary { width: auto; padding: 0 18px; }
+
+.fail { display: grid; gap: 14px; max-width: 560px; margin: 0 auto; padding: 64px 24px; }
+.fail h1 { font: 500 34px/1.1 var(--serif); text-wrap: balance; }
+.fail p { color: var(--ink-2); }
+.fail .detail { font-size: 12px; color: var(--ink-3); }
+
+/* Телефон: список и кемп — отдельные экраны, главные кнопки под большим пальцем,
+   поля не мельче 16 px — иначе Safari приближает страницу при вводе. */
+@media (max-width: 819px) {
+  body { background: var(--sheet); }
+  .shell { display: block; height: auto; }
+  .shell[data-view="list"] .main, .shell[data-view="camp"] .side { display: none; }
+  .side, .main { background: var(--sheet); border: 0; overflow: visible; }
+
+  .list {
+    min-height: 100dvh; gap: 16px;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+  }
+  .list-title { padding: 18px 0 4px; font-size: 40px; line-height: 1; letter-spacing: -.02em; }
+  .search { height: 44px; border-radius: 10px; font-size: 16px; }
+  .chip { min-height: 34px; padding: 0 14px; font-size: 14px; }
+  .yr b { font-size: 40px; }
+  .yr small { font-size: 13px; }
+  .mh { margin-bottom: 0; padding: 18px 0 6px; }
+  .lrow { padding: 12px 0; border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; }
+  .lrow[aria-current="page"] { background: none; }
+  .lrow .n { font-size: 17px; }
+  .lrow .p { font-size: 18px; }
+  .lrow .s { font-size: 13px; }
+  .new-bar {
+    padding: 12px 0 max(16px, env(safe-area-inset-bottom));
+    background: linear-gradient(to bottom, transparent, var(--sheet) 30%);
+  }
+  .primary { min-height: 52px; border-radius: 14px; font-size: 17px; }
+  .link { min-height: 44px; font-size: 17px; }
+  .backup button { min-height: 40px; font-size: 14px; }
+  /* Импорт на телефоне — лист снизу, кнопки под большим пальцем. */
+  .sheet { width: 100%; margin: auto 0 0; max-height: 92dvh; border-radius: 16px 16px 0 0; }
+  .sheet-f { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
+  .sheet-f button { flex: 1; min-height: 52px; }
+  .imp-row input { width: 22px; height: 22px; }
+
+  /* Зона касания крайней ручки состава шире отступа страницы — clip срезает её край, не делая блок прокручиваемым. */
+  .camp { gap: 26px; padding: max(8px, env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom)); overflow-x: clip; }
+  .camp[data-tab="numbers"] > .pane:not([data-pane="numbers"]),
+  .camp[data-tab="people"] > .pane:not([data-pane="people"]),
+  .camp[data-tab="notes"] > .pane:not([data-pane="notes"]) { display: none; }
+  .tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    padding: 6px max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    border-top: 1px solid var(--rule); background: var(--sheet);
+  }
+  .tab {
+    display: grid; justify-items: center; gap: 2px; min-height: 48px; padding: 4px 0;
+    border: 0; background: none; font-size: 11px; color: var(--ink-3); cursor: pointer;
+  }
+  .tab svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .tab[aria-pressed="true"] { color: var(--ink); }
+  .back { display: inline-flex; }
+  .camp-name { font-size: 40px; }
+  .seg button { min-height: 36px; font-size: 15px; }
+  .setup { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Цель — одна в последнем ряду: во всю ширину, как Start, а не половинка с пустотой рядом. */
+  .setup > .fld:last-child { grid-column: span 2; }
+  .fld-box { height: 44px; border-radius: 10px; }
+  .fld-box input, .fld-box select { font-size: 16px; }
+  .wi-range input { height: 36px; }
+  .step { height: 44px; border-radius: 10px; }
+  .step button { width: 48px; font-size: 22px; }
+  .step output { font-size: 16px; }
+  .quiet { min-height: 44px; }
+  .tog { min-height: 40px; font-size: 15px; }
+  .camp-notes textarea { font-size: 16px; }
+  .toast-slot { bottom: calc(84px + env(safe-area-inset-bottom)); }
+}
